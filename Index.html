@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>CECI Conecta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <?!= include('CSS') ?>
+
+</head>
+<body>
+
+  <button id="toggleSidebarBtn" class="toggle-sidebar-btn">☰</button>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-container">
+      <img src="https://lh3.googleusercontent.com/fife/ALs6j_Hii2y3SbRjezke6xpBGw3d2enJvvTKnAt-D0IwnJTzYe9sOPTHa7U8LdVRImyJcX3p4m7x24-lbaZIxd9VJHT-ESJFxl1Oa0d66OascCmzNPUw-ntq6nFNUDPmy2rmfAD6DHEN4e1FGa0vBJb0s7PjiYCQdnSZJxMy8CmFJTJw4IP6QD4NoBLbG8gPeOSb0kTeip-cCxo2GsDztAN-HFuxlGScKuGJPzurLGbAQoUgHiv26wxlOrW36RmuuzagJgll6QX549_l9TThVPMISCRjs5Tef6QC8aMApgJ1vLtgd7nkJnntMt_CbzExcqwe4aplVsiHA402zJKNxdgczJpP4_4GHS4NbGTGgL9xlw-qKKtJ_mn-Q6eppdAS4vKK6mowmTdcSr5J83J44xGilNgzPRPD6sDzAGMtmHKnRR3fMlf8pT6t1t-NBnQYLUoEcglhFVYnJmFLxbAE6fv6jSosr99Ybi7gBsdNFQlkhLsswTGQ9CyPgMWZH5880m_Ca05DOQ2-QoUngv4jsXg10LcLdtfKbhUsIhKcj5T27SbEDmxkDeoWEeLaoBHf4_b2TrOnRpZ6ycuqtPgn9OMmA9OjnPB-h3bqg1vz5V3HaDvkvLkt8VGbvnisH2I0tWA1nKvUEO1JXcC_bbRBuzrwvrjRZld3rIkxDD4qA_AKWD-RS0xfabxMnNwhH5vnLYO6Q1zL8AfWUYu-aKWFmYaRDeJXtXEaeT89SxcITmtheftJ7OZSaC6ZRKEsxp8hNYi1x04PUXn9DYR9HqEcI7E4uKGZyWVPeRlSmVKcFbHSLzjDQ6hyu85_8tfcYKqs9hpxWatM6N2QYrdDXF3OZt20C-4L1xWO1ax4BV6mDl1qY9bHhI8iENcUdfw7k_wYpbBcAUOFxf29pVN58KxxLZPTRF9ws6omTiFbArC6sHjonh0HvOXg8L2HlUAEiPZDP6eK2ypt4U4_Wmj68i4YTyJcTjNQILDsGBZX7hC-YY3zB4pEhRhYBFCqycyRxsr4mGVDyj7HR7P_4ISuWds0dKJMpTNL9CSRc07Z4phzJP2f7G3OApvtHA3JNiq1KOTETz8xqwLR84JdF0fGnIvCIl1cTlMvMNCQzqZwpNfZyCQOXnJWxbfEjvi3FiTMkgoDC86NHmogVmdu7ZdVGZuff-eyUsoOEu9mxyijsuD_DlM0ccbnsQZVMgktKYxqlEZH1gPt-bnouGHd9J90OWiZ8h1kEi1-aVqTQNRXc5FQjn959IJIKsn-9HBEEVCF3m1bef-rB632ZNiVzfHvR7Sm0U27oQUj70yj3hQCfQLZveDhsSSWa-boygUpx7DBBAvnen7YjlbJsFLTpX7jzrZpuzjSRGkPOFCxfJZjb-9NFEix5Dv9rZrKpMLO4Z4xzIgmAxA-9M45yN0-OBVolJcAhy1VvOlMa4a5nmPEtdB7lR6COKfNZ6Csf4dug8UYNSzrGoX_AyIUFBD4tug0Mil3VhqkkfsjPsK9R458FSfe04cUtE-BtPP41YzHAji1IyRZgcUllnrOGrvW9YG2PlJIBUOed87PTfkeYpYY61BvSFeWu_ZMzSxqG2POKWVyxWXDMP_sOOyzas1YDx32LXst5GwTcsp3eRJndyfzNTqK2KSKFQ=w1920-h1042?auditContext=prefetch" alt="Logo Empresa">
+    </div>
+
+    <nav id="main-navigation" class="main-navigation">
+        <div class="nav-section">
+            <a href="#" class="nav-section-title" data-section="tableros"> 📊 Indicadores
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <a href="#" class="nav-section-title" data-section="conocimiento">
+                🧠 Centro de Conocimiento
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <a href="#" class="nav-section-title" data-section="pqrs">
+                ⚙️ PQRS
+            </a>
+        </div>
+
+        <div class="nav-section">
+            <a href="#" class="nav-section-title" data-section="directorio">
+                ✨ Directorio y Canales de Comunicación
+            
+            </a>
+        </div>
+    </nav>
+  </aside>
+
+  <main class="main-content" id="mainContent">
+    <div class="section-header" id="sectionHeader">
+      <h1>Cargando...</h1>
+      <p>Inicializando Torre de Control.</p>
+    </div>
+
+    <div class="search-filter-area">
+      <input type="text" class="search-input" placeholder="Ingrese el nombre del informe o herramienta a buscar">
+      
+      <div id="dashboard-nav-pills" class="filter-buttons">
+        </div>
+      
+      <div class="filter-buttons" id="filterButtons">
+        <button class="filter-button active-filter" data-filter="Todo">Todo</button>
+      </div>
+    </div>
+
+    <div class="cards-container" id="cardsContainer">
+      </div>
+
+    <div class="iframe-viewer" id="iframeViewer">
+      <h2><span id="iframeTitle"></span></h2>
+      <iframe id="dataIframe" frameborder="0"></iframe>
+      <button id="closeIframeBtn" class="card-button">Cerrar Tablero</button>
+    </div>
+  </main>
+
+  <div id="pqrsCaseModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Crear Nueva Alerta</h2>
+      <form id="pqrsCaseForm">
+        <div class="form-group">
+          <label for="criticidad">Criticidad:</label>
+          <select id="criticidad" name="criticidad" required>
+            <option value="">Selecciona</option>
+            <option value="Alta">Alta</option>
+            <option value="Media">Media</option>
+            <option value="Baja">Baja</option>
+            <option value="Crítica">Crítica</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="tipoAlerta">Tipo de alerta:</label>
+          <select id="tipoAlerta" name="tipoAlerta" required>
+            <option value="">Selecciona</option>
+            <option value="Petición">Petición</option>
+            <option value="Queja">Queja</option>
+            <option value="Requerimiento">Requerimiento</option>
+            <option value="Seguimiento">Seguimiento</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+          <label for="resumenAlerta">Resumen alerta:</label>
+          <input type="text" id="resumenAlerta" name="resumenAlerta" required placeholder="Ej: Problema con entrega de insumos">
+        </div>
+
+        <div class="form-group">
+          <label for="detalleAlarma">Detalle de alarma:</label>
+          <textarea id="detalleAlarma" name="detalleAlarma" rows="4" placeholder="Describe el problema en detalle"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="negocio">Negocio:</label>
+          <input type="text" id="negocio" name="negocio" placeholder="Ej: Comercial Nutresa">
+        </div>
+
+        <button type="submit" class="card-button">Enviar</button>
+      </form>
+    </div>
+  </div>
+
+<?!= include('JS') ?>
+
+</body>
+</html>

@@ -1,0 +1,505 @@
+<script>
+  // --- VARIABLES GLOBALES (declaración sin inicialización de DOM aquí) ---
+  let dashboardData = {};
+
+  // Declaramos las constantes, pero no las inicializamos con document.getElementById
+  // hasta que el DOM esté completamente cargado.
+  let mainHeader;
+  let cardsContainer;
+  let iframeViewer;
+  let dataIframe;
+  let iframeTitle;
+  let toggleSidebarBtn;
+  let body;
+  let dashboardNavPills;
+
+  // Elementos del Modal PQRS
+  let pqrsCaseModal;
+  let pqrsCaseForm;
+  let closeButton;
+
+
+  // --- INICIALIZACIÓN DE LA APLICACIÓN ---
+  document.addEventListener('DOMContentLoaded', initialize);
+
+  function initialize() {
+    // AHORA inicializamos las variables del DOM aquí, dentro de DOMContentLoaded
+    mainHeader = document.getElementById('sectionHeader');
+    cardsContainer = document.getElementById('cardsContainer');
+    iframeViewer = document.getElementById('iframeViewer');
+    dataIframe = document.getElementById('dataIframe');
+    iframeTitle = document.getElementById('iframeTitle');
+    toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+    body = document.body; // 'body' ya existe al cargar el DOM
+    dashboardNavPills = document.getElementById('dashboard-nav-pills');
+
+    // Elementos del Modal PQRS
+    pqrsCaseModal = document.getElementById('pqrsCaseModal');
+    pqrsCaseForm = document.getElementById('pqrsCaseForm');
+    // Es importante verificar que el elemento 'pqrsCaseModal' exista antes de buscar su descendiente 'close-button'
+    closeButton = pqrsCaseModal ? pqrsCaseModal.querySelector('.close-button') : null;
+
+
+    google.script.run
+      .withSuccessHandler(setupInitialView)
+      .withFailureHandler(handleInitialError)
+      .getPortalData();
+    
+    setupNavigation();
+    
+    // Este elemento (closeIframeBtn) siempre debería existir en Index.html
+    const closeIframeBtn = document.getElementById('closeIframeBtn');
+    if (closeIframeBtn) {
+        closeIframeBtn.addEventListener('click', () => {
+            iframeViewer.style.display = 'none';
+            dataIframe.src = 'about:blank';
+        });
+    } else {
+        console.error("Botón 'Cerrar Tablero' no encontrado en Index.html.");
+    }
+
+
+    // Eventos del Modal PQRS (solo si el modal y sus elementos existen en el DOM)
+    if (pqrsCaseModal && pqrsCaseForm && closeButton) {
+      closeButton.addEventListener('click', closePqrsModal);
+      window.addEventListener('click', (event) => {
+        if (event.target == pqrsCaseModal) {
+          closePqrsModal();
+        }
+      });
+
+      pqrsCaseForm.addEventListener('submit', handlePqrsFormSubmit);
+    } else {
+        // Esta advertencia es útil durante el desarrollo.
+        // Si el modal está diseñado para ser cargado dinámicamente o no es esencial en todas las páginas,
+        // no es un error crítico. Sin embargo, en este caso, se espera que el modal esté en Index.html.
+        console.warn("Advertencia: Algunos elementos del modal PQRS (o el modal mismo) no fueron encontrados en el DOM. Verifique Index.html.");
+    }
+  }
+  
+  function handleInitialError(error) {
+    mainHeader.querySelector('h1').textContent = "Error de Carga";
+    mainHeader.querySelector('p').textContent = "No se pudieron cargar los datos iniciales. " + error.message;
+    console.error("Error inicial (handleInitialError):", error); 
+  }
+
+  function setupInitialView(data) {
+    dashboardData = data.tableros;
+    // Carga el módulo de tableros por defecto al iniciar
+    const tablerosLink = document.querySelector('[data-section="tableros"]');
+    if (tablerosLink) {
+        tablerosLink.classList.add('active');
+        loadModuleContent('tableros');
+    } else {
+        console.error("El enlace de 'Tableros' con data-section='tableros' no fue encontrado en la navegación. Asegúrese que Index.html lo tiene.");
+        loadModuleContent('default'); // Muestra la sección "en construcción" como fallback
+    }
+  }
+
+  // --- CONFIGURACIÓN Y LÓGICA DE NAVEGACIÓN ---
+  function setupNavigation() {
+    const navTitles = document.querySelectorAll('.nav-section-title');
+    navTitles.forEach(title => {
+      title.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        navTitles.forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        
+        const section = this.dataset.section;
+        loadModuleContent(section);
+      });
+    });
+    
+    toggleSidebarBtn.addEventListener('click', () => {
+        body.classList.toggle('sidebar-closed');
+    });
+  }
+
+  function loadModuleContent(section) {
+    iframeViewer.style.display = 'none';
+    cardsContainer.innerHTML = ''; // Limpia el contenedor principal de tarjetas
+    dashboardNavPills.style.display = 'none'; // Oculta las píldoras de navegación de tableros
+    
+    // Remueve los botones de la vista principal de PQRS si existen al cambiar de sección
+    const pqrsMainButtons = document.getElementById('pqrs_main_buttons');
+    if (pqrsMainButtons) {
+        pqrsMainButtons.remove();
+    }
+    // Cierra el modal de PQRS si está abierto
+    closePqrsModal();
+
+    switch (section) {
+      case 'tableros':
+        mainHeader.querySelector('h1').textContent = "Indicadores de Proceso";
+        mainHeader.querySelector('p').textContent = "Consulta los informes y herramientas clave para tu gestión.";
+        dashboardNavPills.style.display = 'flex'; // Muestra la navegación de píldoras de tableros
+        renderDashboardNav();
+        if (dashboardData && Object.keys(dashboardData).length > 0) {
+            const firstSection = Object.keys(dashboardData)[0];
+            displayDashboardContent(firstSection);
+            setTimeout(() => {
+                const firstPill = document.querySelector('#dashboard-nav-pills a');
+                if (firstPill) firstPill.classList.add('active-filter');
+            }, 100);
+        } else {
+            displayDashboardContent(null);
+        }
+        break;
+
+      case 'conocimiento':
+        mainHeader.querySelector('h1').textContent = "Centro de Conocimiento";
+        mainHeader.querySelector('p').textContent = "Recursos de capacitación y protocolos para tu equipo.";
+        cardsContainer.innerHTML = '<div class="loader">Cargando recursos...</div>';
+        google.script.run.withSuccessHandler(renderKnowledgeCards).getKnowledgeData();
+        break;
+      
+      case 'pqrs': 
+        mainHeader.querySelector('h1').textContent = "Peticiones, Quejas, Requerimientos y Seguimientos";
+        mainHeader.querySelector('p').textContent = "Gestiona tus casos y añade nuevos.";
+        renderPqrsMainView(); // Llama a la función para la vista principal de PQRS
+        break;
+
+      case 'directorio': 
+      default: 
+        mainHeader.querySelector('h1').textContent = section.charAt(0).toUpperCase() + section.slice(1);
+        mainHeader.querySelector('p').textContent = "Esta sección está en construcción.";
+        break;
+    }
+  }
+  
+  function renderDashboardNav() {
+    dashboardNavPills.innerHTML = '';
+    const secciones = dashboardData ? Object.keys(dashboardData) : [];
+
+    if (secciones.length > 0) {
+      secciones.forEach(seccion => {
+        const link = document.createElement('a');
+        link.href = '#';
+        link.className = 'filter-button';
+        link.textContent = seccion;
+        link.onclick = (e) => {
+          e.preventDefault();
+          document.querySelectorAll('#dashboard-nav-pills a').forEach(pill => pill.classList.remove('active-filter'));
+          link.classList.add('active-filter');
+          displayDashboardContent(seccion);
+        };
+        dashboardNavPills.appendChild(link);
+      });
+    }
+  }
+
+  // --- LÓGICA PARA RENDERIZAR CONTENIDO GENERAL (TABLEROS Y CONOCIMIENTO) ---
+
+  function displayDashboardContent(sectionName) {
+      if (!sectionName) {
+          mainHeader.querySelector('h1').textContent = "Tableros de Control";
+          mainHeader.querySelector('p').textContent = "No hay secciones de tableros disponibles para tu dominio.";
+          cardsContainer.innerHTML = '';
+          return;
+      }
+      mainHeader.querySelector('h1').textContent = sectionName;
+      mainHeader.querySelector('p').textContent = `Informes y herramientas de ${sectionName}.`;
+      cardsContainer.innerHTML = '';
+
+      const sectionData = dashboardData[sectionName];
+      if (sectionData) {
+        for (let negocio in sectionData) {
+          if(typeof sectionData[negocio] === 'object' && sectionData[negocio] !== null && negocio !== 'descripcion') { 
+            const card = createDashboardCard(negocio, sectionData[negocio]);
+            cardsContainer.appendChild(card);
+          }
+        }
+      }
+  }
+  
+  function createDashboardCard(negocio, data) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-icon"></div>
+        <h3>${negocio}</h3>
+        <p>${data.descripcion || 'Descripción no disponible.'}</p>
+        <div class="card-actions"></div>
+      `;
+      const actions = card.querySelector('.card-actions');
+      const diario = data['Diario'];
+      const historico = data['Histórico'];
+      if (diario) actions.appendChild(createCardButton('Ver Diario', () => loadIframe(diario.url, diario.nombre), true));
+      if (historico) actions.appendChild(createCardButton('Ver Histórico', () => window.open(historico.url, '_blank')));
+      return card;
+  }
+
+  function renderKnowledgeCards(recursos) {
+      cardsContainer.innerHTML = '';
+      if (!recursos || recursos.length === 0) {
+        cardsContainer.innerHTML = '<p>No se encontraron recursos.</p>';
+        return;
+      }
+      recursos.forEach(recurso => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const iconClass = recurso.tipo.toLowerCase() === 'video' ? 'icon-video' : 'icon-documento';
+        card.innerHTML = `
+          <div class="card-icon ${iconClass}"></div>
+          <h3>${recurso.titulo}</h3>
+          <p>${recurso.descripcion}</p>
+        `;
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'card-actions';
+        buttonContainer.appendChild(createCardButton('Ver Recurso', () => loadIframe(recurso.urlEmbed, recurso.titulo)));
+        card.appendChild(buttonContainer);
+      });
+  }
+
+  // --- FUNCIONES ESPECÍFICAS PARA LA SECCIÓN PQRS ---
+
+  // Función principal para la vista de PQRS
+  function renderPqrsMainView() {
+      // Crea y añade los botones "Seguimiento" y "Añadir"
+      const pqrsMainButtonsContainer = document.createElement('div');
+      pqrsMainButtonsContainer.id = 'pqrs_main_buttons'; // Para poder removerlo fácilmente
+      pqrsMainButtonsContainer.className = 'filter-buttons pqrs-main-buttons-container';
+      pqrsMainButtonsContainer.innerHTML = `
+          <button class="filter-button active-filter" data-pqrs-view="list">Seguimiento a mis casos</button>
+          <button class="filter-button" data-pqrs-view="new">Añadir un nuevo caso</button>
+      `;
+      // Inserta los botones después del encabezado principal
+      mainHeader.insertAdjacentElement('afterend', pqrsMainButtonsContainer);
+
+      // Agrega Event Listeners a los nuevos botones
+      pqrsMainButtonsContainer.querySelectorAll('.filter-button').forEach(button => {
+          button.addEventListener('click', function() {
+              // Remueve la clase activa de todos los botones de vista PQRS
+              pqrsMainButtonsContainer.querySelectorAll('.filter-button').forEach(btn => btn.classList.remove('active-filter'));
+              // Añade la clase activa al botón clickeado
+              this.classList.add('active-filter');
+
+              const viewType = this.dataset.pqrsView;
+              if (viewType === 'list') {
+                  showPqrsCaseList();
+              } else if (viewType === 'new') {
+                  showNewCaseSelection(); // Esta función ahora muestra el modal directamente
+              }
+          });
+      });
+
+      // Muestra por defecto la lista de casos al cargar la sección PQRS
+      showPqrsCaseList(); 
+  }
+
+  // Muestra la lista de casos PQRS del usuario
+  function showPqrsCaseList() {
+      cardsContainer.innerHTML = '<div class="loader">Cargando mis casos PQRS...</div>';
+      google.script.run
+          .withSuccessHandler(renderPqrsList)
+          .withFailureHandler(e => {
+              cardsContainer.innerHTML = `<p style="color: red;">Error al cargar los casos: ${e.message}</p>`;
+              console.error(`Error al cargar casos PQRS: ${e.message}`);
+          })
+          .getPqrsCasesByDomain(); // Llama a la nueva función de Apps Script
+  }
+
+  // Renderiza la lista de casos PQRS obtenida de la hoja
+  function renderPqrsList(pqrsCases) {
+      cardsContainer.innerHTML = ''; // Limpia el loader
+
+      // Encabezado de la tabla (como en tu imagen)
+      const tableHeader = document.createElement('div');
+      tableHeader.className = 'pqrs-grid-header';
+      tableHeader.innerHTML = `
+          <div>Criticidad</div>
+          <div>Tipo de caso</div>
+          <div>Fecha generación</div>
+          <div>ID</div>
+          <div>Caso</div>
+          <div>Detalle caso</div>
+          <div>Negocio</div>
+          <div>Respuesta CECI</div>
+          <div>Fecha cierre</div>
+          <div>Estado</div>
+          <div>Tiempo</div>
+          <div>Persona encargada</div>
+          <div>Acciones</div>
+      `;
+      cardsContainer.appendChild(tableHeader);
+
+      if (!pqrsCases || pqrsCases.length === 0) {
+          const noCasesMsg = document.createElement('p');
+          noCasesMsg.textContent = 'No se encontraron casos PQRS para tu dominio.';
+          noCasesMsg.style.textAlign = 'center';
+          noCasesMsg.style.marginTop = '20px';
+          cardsContainer.appendChild(noCasesMsg);
+          return;
+      }
+
+      pqrsCases.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card pqrs-card'; 
+
+          // Generar las clases de Criticidad y Estado (normalizando a minúsculas y sin espacios)
+          const criticidadClass = item.criticidad ? `criticidad-${String(item.criticidad).toLowerCase().replace(/\s/g, '-')}` : '';
+          const estadoClass = item.estado ? `estado-${String(item.estado).toLowerCase().replace(/\s/g, '-')}` : '';
+
+          card.innerHTML = `
+              <div class="pqrs-grid">
+                  <div class="pqrs-item criticidad">
+                      <span class="label">Criticidad</span>
+                      <span class="value ${criticidadClass}">${item.criticidad || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item tipo-de-caso">
+                      <span class="label">Tipo de caso</span>
+                      <span class="value">${item.tipoDeCaso || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item fecha-generacion">
+                      <span class="label">Fecha generación</span>
+                      <span class="value">${item.fechaGeneracion || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item id-caso">
+                      <span class="label">ID</span>
+                      <span class="value">${item.id || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item caso">
+                      <span class="label">Caso</span>
+                      <span class="value">${item.caso || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item detalle-caso">
+                      <span class="label">Detalle caso</span>
+                      <span class="value">${item.detalleCaso || 'Sin detalle'}</span>
+                  </div>
+                  <div class="pqrs-item negocio">
+                      <span class="label">Negocio</span>
+                      <span class="value">${item.negocio || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item respuesta-ceci">
+                      <span class="label">Respuesta CECI</span>
+                      <span class="value">${item.respuestaCECI || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item fecha-cierre">
+                      <span class="label">Fecha cierre</span>
+                      <span class="value">${item.fechaCierre || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item estado">
+                      <span class="label">Estado</span>
+                      <span class="value ${estadoClass}">${item.estado || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item tiempo">
+                      <span class="label">Tiempo</span>
+                      <span class="value">${item.tiempo || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item persona-encargada">
+                      <span class="label">Persona encargada</span>
+                      <span class="value">${item.personaEncargada || 'N/A'}</span>
+                  </div>
+                  <div class="pqrs-item acciones">
+                      <span class="label">Acciones</span>
+                      <div class="action-buttons">
+                          ${item.linkDetalle && item.linkDetalle !== '#' ? 
+                          `<button class="action-icon-button" onclick="window.open('${item.linkDetalle}', '_blank')" title="Ver Detalles"><img alt="Ver"></button>` : ''}
+                          <button class="action-icon-button" title="Editar"><img alt="Editar"></button>
+                          <button class="action-icon-button" title="Eliminar"><img alt="Eliminar"></button>
+                      </div>
+                  </div>
+              </div>
+          `;
+          cardsContainer.appendChild(card);
+      });
+  }
+
+  // --- FUNCIONES DE UTILIDAD ---
+  
+  function createCardButton(text, onClick, isSecondary = false) {
+    const button = document.createElement('button');
+    button.className = isSecondary ? 'card-button secondary' : 'card-button';
+    button.textContent = text;
+    button.onclick = onClick;
+    return button;
+  }
+  
+  function loadIframe(url, title) {
+      dataIframe.src = url;
+      iframeTitle.textContent = title;
+      iframeViewer.style.display = 'flex';
+      iframeViewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // --- Función para mostrar el modal del nuevo caso PQRS ---
+  function showNewCaseSelection() {
+      if (pqrsCaseModal) {
+          pqrsCaseModal.style.display = 'flex'; // Cambia a 'flex' para centrar con CSS
+          pqrsCaseForm.reset(); // Limpia el formulario cada vez que se abre
+      } else {
+          console.error("Error: El modal PQRS no fue encontrado en el DOM. Verifique Index.html para el elemento con id='pqrsCaseModal'.");
+          alert("No se pudo abrir el formulario para añadir un nuevo caso. Contacta al administrador.");
+      }
+  }
+
+  // --- Función para cerrar el modal del nuevo caso PQRS ---
+  function closePqrsModal() {
+      if (pqrsCaseModal) {
+          pqrsCaseModal.style.display = 'none';
+          pqrsCaseForm.reset(); // Limpia el formulario al cerrar
+      }
+  }
+
+  // --- Manejador del envío del formulario del nuevo caso PQRS ---
+  function handlePqrsFormSubmit(event) {
+    event.preventDefault(); // Evita el envío por defecto del formulario
+
+    // Captura los datos del formulario
+    const formData = {
+      criticidad: document.getElementById('criticidad').value,
+      tipoAlerta: document.getElementById('tipoAlerta').value,
+      resumenAlerta: document.getElementById('resumenAlerta').value,
+      detalleAlarma: document.getElementById('detalleAlarma').value,
+      negocio: document.getElementById('negocio').value,
+      // Puedes añadir más campos aquí si los agregaste al formulario HTML
+      // Si el estado inicial es siempre "Abierto", no necesitas un campo para ello aquí,
+      // puedes pasarlo directamente en el backend (como ya lo hicimos).
+      // Si "Tiempo" y "Tiempo parametrizado" no se llenan inicialmente, tampoco necesitan estar aquí.
+    };
+
+    // Validación básica (puedes mejorarla para cada campo)
+    if (!formData.criticidad || !formData.tipoAlerta || !formData.resumenAlerta) {
+        alert('Por favor, completa los campos obligatorios (Criticidad, Tipo de alerta, Resumen alerta).');
+        return;
+    }
+
+    // Deshabilita el botón de enviar para evitar envíos duplicados
+    const submitButton = pqrsCaseForm.querySelector('button[type="submit"]');
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+    }
+
+
+    // Muestra un mensaje de carga (puedes usar un div de mensaje o un loader más visual en el futuro)
+    // alert('Guardando caso PQRS...'); // Esta alerta es modal, puede interferir con la UX. Mejor un spinner.
+
+    google.script.run
+      .withSuccessHandler(response => {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar';
+        }
+        if (response.success) {
+          alert(response.message);
+          closePqrsModal(); // Cierra el modal al guardar con éxito
+          showPqrsCaseList(); // Vuelve a cargar la lista para mostrar el nuevo caso
+        } else {
+          alert('Error: ' + response.message);
+          console.error('Error al guardar caso (respuesta de Apps Script):', response.message);
+        }
+      })
+      .withFailureHandler(error => {
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar';
+        }
+        alert('Error al enviar el formulario (falla de Apps Script): ' + error.message);
+        console.error('Error de Apps Script al enviar formulario:', error);
+      })
+      .addPqrsCase(formData); // Llama a la nueva función de Apps Script
+  }
+
+</script>

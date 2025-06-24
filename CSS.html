@@ -1,0 +1,444 @@
+<style>
+  /* Definición de la paleta de colores */
+  :root {
+    --color-primary-darkest: #200364;
+    --color-primary-dark: #01003e;
+    --color-primary-medium: #02005f;
+    --color-primary-light: #020070;
+    --color-secondary-green: #81be41;
+    --color-secondary-orange: #fdb934;
+    --color-secondary-light-green: #cbdb2b;
+    --color-secondary-red: #f26b23;
+    --color-secondary-teal: #00a882;
+    --color-background-light: #f8f9fa;
+    --color-card-background: #ffffff;
+    --color-text-light: #ffffff;
+    --color-text-dark: #34495e;
+    --color-border: #e0e0e0;
+  }
+  body {
+    font-family: 'Open Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background-light);
+    display: flex;
+    min-height: 100vh;
+    color: var(--color-text-dark);
+  }
+.card-icon-img {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+
+  /* Clases para ocultar/mostrar el sidebar */
+  body.sidebar-closed .sidebar { transform: translateX(-100%); width: 0; overflow: hidden; }
+  body.sidebar-closed .main-content { margin-left: 0; width: 100%; }
+  .sidebar, .main-content { transition: all 0.3s ease-in-out; }
+  .toggle-sidebar-btn { position: fixed; top: 20px; left: 260px; background-color: var(--color-secondary-green); color: var(--color-text-light); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; font-size: 1.2em; cursor: pointer; z-index: 1001; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: left 0.3s ease-in-out, background-color 0.3s ease; }
+  .toggle-sidebar-btn:hover { background-color: #71b131; }
+  body.sidebar-closed .toggle-sidebar-btn { left: 20px; }
+  .sidebar { width: 250px; background-color: var(--color-primary-darkest); color: var(--color-text-light); padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .logo-container { margin-bottom: 30px; text-align: center; }
+  .logo-container img { max-width: 150px; height: auto; }
+  /* Estilos para la navegación principal en la barra lateral */
+  .main-navigation { width: 100%; list-style: none; flex-grow: 1; }
+  .nav-section { margin-bottom: 5px; }
+  .nav-section-title { display: block; padding: 14px 15px; color: var(--color-text-light); text-decoration: none; border-radius: 8px; transition: background-color 0.3s ease; font-weight: 700; font-size: 1em; }
+  .nav-section-title:hover { background-color: var(--color-primary-medium); }
+  .nav-section-title.active { background-color: var(--color-secondary-green); color: #fff; }
+  /* Estilos del botón inferior de la barra lateral */
+  .sidebar-button { background-color: var(--color-secondary-green); color: var(--color-text-light); border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 1em; font-weight: 700; margin-top: auto; transition: background-color 0.3s ease; width: 90%; text-align: center; }
+  .sidebar-button:hover { background-color: #71b131; }
+  /* Estilos del Contenido Principal */
+  .main-content { flex-grow: 1; padding: 30px 40px; overflow-y: auto; }
+  .section-header { margin-bottom: 25px; }
+  .section-header h1 { color: var(--color-primary-dark); font-size: 2.5em; margin-bottom: 10px; }
+  .section-header p { color: var(--color-text-dark); font-size: 1.1em; line-height: 1.6; }
+  .search-filter-area { margin-bottom: 30px; display: flex; flex-direction: column; gap: 15px; }
+  .search-input { width: 100%; padding: 12px 15px; border: 1px solid var(--color-border); border-radius: 8px; font-size: 1em; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+  /* Contenedor para los botones de píldora */
+  .filter-buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+  /* Estilo de los botones de píldora (reutilizado para la nueva navegación) */
+  .filter-button { background-color: var(--color-card-background); border: 1px solid var(--color-border); color: var(--color-text-dark); text-decoration: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-size: 0.9em; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+  .filter-button:hover { border-color: var(--color-primary-medium); transform: translateY(-1px); }
+  .filter-button.active-filter { background-color: var(--color-primary-dark); color: var(--color-text-light); border-color: var(--color-primary-dark); }
+  /* Añadimos un margen inferior al nuevo contenedor de navegación */
+  #dashboard-nav-pills {
+    margin-bottom: 15px;
+  }
+  /* Estilos de las Tarjetas de Contenido */
+  .cards-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+  .card { background-color: var(--color-card-background); border-radius: 12px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); display: flex; flex-direction: column; transition: transform 0.3s ease; }
+  .card:hover { transform: translateY(-5px); }
+  .card-icon { width: 60px; height: 60px; margin-bottom: 15px; background-color: var(--color-border); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 2em; color: var(--color-primary-medium); }
+  .icon-gear { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.09-.76-1.7-.98L14 2.1c-.09-.2-.29-.35-.5-.35h-4c-.21 0-.41.15-.5.35L7.56 5.1c-.61.22-1.18.58-1.7.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.12.22-.07.49.12.64l2.11 1.65c-.04.32-.07.64-.07.98s.03.66.07.98l-2.11 1.65c-.19-.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.09.76 1.7.98L9.5 21.9c.09.2.29.35.5.35h4c.21 0 .41-.15.5-.35l.44-2.99c.61-.22 1.18-.58 1.7-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>'); background-size: 40px; background-repeat: no-repeat; background-position: center; }
+  .icon-video { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M10 16.5v-9l6 4.5-6 4.5zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>'); background-size: 40px; background-repeat: no-repeat; background-position: center; }
+  .icon-documento { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232c3e50"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>'); background-size: 40px; background-repeat: no-repeat; background-position: center; }
+  .card h3 { margin: 0 0 8px; color: var(--color-primary-dark); font-size: 1.25em; font-weight: 600; }
+  .card p { font-size: 0.95em; color: var(--color-text-dark); margin-bottom: 20px; flex-grow: 1; }
+  .card-actions { display: flex; gap: 10px; margin-top: auto; }
+  .card-button { background-color: var(--color-secondary-green); color: var(--color-text-light); border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600; transition: background-color 0.3s ease, transform 0.2s ease; text-decoration: none; display: inline-block; text-align: center; }
+  .card-button.secondary { background-color: var(--color-primary-medium); }
+  .card-button:hover { background-color: #71b131; transform: translateY(-1px); }
+  .card-button.secondary:hover { background-color: #01004f; }
+  .iframe-viewer { margin-top: 30px; background-color: var(--color-card-background); border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); padding: 20px; display: none; flex-direction: column; align-items: center; }
+  .iframe-viewer iframe { width: 100%; height: 600px; border: 1px solid var(--color-border); border-radius: 8px; margin-top: 20px; }
+  .iframe-viewer h2 { color: var(--color-primary-dark); margin-top: 0; margin-bottom: 15px; }
+  @media (max-width: 768px) { body { flex-direction: column; } .sidebar { width: 100%; padding: 15px; flex-direction: row; justify-content: space-around; align-items: center; flex-wrap: wrap; } .main-content { padding: 20px; } .cards-container { grid-template-columns: 1fr; } .toggle-sidebar-btn { left: 15px; top: 15px; } }
+
+  /* Estilos específicos para la sección PQRS (Seguimiento a mis casos) */
+  /* Contenedor de botones principales de PQRS (Seguimiento / Añadir) */
+  .pqrs-main-buttons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .pqrs-main-buttons-container .filter-button {
+    flex-grow: 1; /* Permite que los botones ocupen el espacio disponible */
+    text-align: center;
+  }
+
+  /* Estilos para las tarjetas/filas de casos PQRS (simulando tabla) */
+  .pqrs-grid-header {
+    display: grid;
+    /* Ajusta las columnas para que coincidan con tu hoja y lo que quieres mostrar */
+    /* Criticidad (A), Tipo de caso (B), Fecha generación (C), ID (D), Caso (E), Detalle caso (F), Negocio (G), Respuesta CECI (H), Fecha cierre (I), Estado (J), Tiempo (K), Persona encargada (L), Acciones (M - aunque acciones son dinámicas) */
+    grid-template-columns: 0.8fr 1fr 1.2fr 0.8fr 1.5fr 1.5fr 1fr 1fr 1.2fr 0.8fr 0.8fr 1.5fr 1fr; /* 13 columnas, ajusta los "fr" según el espacio deseado */
+    gap: 10px;
+    font-weight: 700;
+    color: var(--color-primary-dark);
+    padding: 10px 0;
+    margin-bottom: 5px;
+    border-bottom: 2px solid var(--color-border); /* Línea divisoria del encabezado */
+    font-size: 0.85em; /* Fuente ligeramente más pequeña para el encabezado */
+    text-align: left;
+    background-color: var(--color-background-light); /* Fondo del encabezado */
+    position: sticky; /* Hace que el encabezado se pegue al scroll */
+    top: 0;
+    z-index: 10;
+  }
+  .pqrs-grid-header div {
+    padding: 5px;
+  }
+
+  .pqrs-card {
+    background-color: var(--color-card-background);
+    border-radius: 8px; /* Ligeramente más pequeños que los card generales */
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Sombra más sutil */
+    margin-bottom: 10px; /* Espacio entre tarjetas de casos */
+  }
+
+  .pqrs-grid {
+    display: grid;
+    /* Mismas columnas que el encabezado */
+    grid-template-columns: 0.8fr 1fr 1.2fr 0.8fr 1.5fr 1.5fr 1fr 1fr 1.2fr 0.8fr 0.8fr 1.5fr 1fr; 
+    gap: 10px;
+    align-items: center;
+    font-size: 0.85em; /* Tamaño de fuente para el contenido de la fila */
+  }
+
+  .pqrs-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 5px;
+  }
+  .pqrs-item .label {
+    font-size: 0.7em; /* Etiqueta más pequeña */
+    color: #777;
+    margin-bottom: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .pqrs-item .value {
+    font-size: 0.8em; /* Valor más pequeño */
+    font-weight: 500;
+    word-break: break-word; 
+    line-height: 1.3; /* Espaciado de línea para legibilidad */
+  }
+
+  /* Estilos para Criticidad y Estado (colores de la imagen) */
+  .pqrs-item .value.criticidad-alta { 
+    background-color: #D32F2F; /* Rojo */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap; /* Evita que el texto se rompa en varias líneas */
+  }
+  .pqrs-item .value.criticidad-media {
+    background-color: #FBC02D; /* Naranja/Amarillo */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pqrs-item .value.criticidad-baja {
+    background-color: #81be41; /* Verde más cercano a tu tema */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pqrs-item .value.criticidad-critica { /* Añadido si tienes esta categoría */
+    background-color: #B71C1C; /* Rojo más oscuro */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .pqrs-item .value.estado-abierto {
+    background-color: #fdb934; /* Naranja/Amarillo del tema */
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .pqrs-item .value.estado-cerrado {
+    background-color: var(--color-secondary-green);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  /* Asegúrate de que los nombres de estado en tu hoja (Ej: "Abierto", "Cerrado")
+     coincidan con las clases generadas (ej: "estado-abierto", "estado-cerrado")
+     Si tienes "Pendiente por gestionar", la clase sería "estado-pendiente-por-gestionar"
+  */
+
+  .pqrs-item.acciones {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .pqrs-item.acciones .label {
+    display: none; 
+  }
+  .action-buttons {
+    display: flex;
+    gap: 5px;
+  }
+  .action-icon-button {
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    width: 30px; 
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  .action-icon-button:hover {
+    background-color: var(--color-primary-medium);
+    border-color: var(--color-primary-medium);
+  }
+  .action-icon-button img {
+    width: 16px; 
+    height: 16px;
+    filter: invert(20%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%); 
+    transition: filter 0.3s ease;
+  }
+
+  .action-icon-button:hover img {
+      filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%); 
+  }
+
+  /* Estilos para el formulario de selección de nuevo caso */
+  .pqrs-new-case-form {
+    padding: 20px;
+    text-align: center;
+    background-color: var(--color-card-background);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    margin-top: 20px; /* Separación de los botones de arriba */
+  }
+  .pqrs-new-case-form h2 {
+    color: var(--color-primary-dark);
+    margin-bottom: 25px;
+    font-size: 1.8em;
+  }
+  .pqrs-new-case-form .type-selection-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+  .pqrs-new-case-form .card-button { 
+    min-width: 180px;
+    padding: 15px 25px;
+    font-size: 1.1em;
+  }
+
+  /* Estilos del Modal */
+  .modal {
+    display: none; /* Oculto por defecto */
+    position: fixed; /* Permanece en su lugar */
+    z-index: 1002; /* Por encima de todo lo demás */
+    left: 0;
+    top: 0;
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    overflow: auto; /* Habilita el scroll si es necesario */
+    background-color: rgba(0,0,0,0.4); /* Fondo semi-transparente */
+    justify-content: center; /* Centra el contenido horizontalmente */
+    align-items: center; /* Centra el contenido verticalmente */
+  }
+
+  .modal-content {
+    background-color: var(--color-card-background);
+    margin: auto; /* Auto-margen para centrar */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    width: 90%; /* Ancho por defecto */
+    max-width: 600px; /* Ancho máximo */
+    position: relative; /* Para el botón de cerrar */
+    animation: fadeIn 0.3s ease-out; /* Animación de aparición */
+  }
+
+  .modal-content h2 {
+    color: var(--color-primary-dark);
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 2em;
+    text-align: center;
+  }
+
+  .close-button {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 35px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+  }
+
+  .close-button:hover,
+  .close-button:focus {
+    color: var(--color-primary-dark);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--color-text-dark);
+  }
+
+  .form-group input[type="text"],
+  .form-group textarea,
+  .form-group select {
+    width: calc(100% - 20px); /* Ancho completo menos padding */
+    padding: 12px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 1em;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+    transition: border-color 0.3s ease;
+  }
+
+  .form-group input[type="text"]:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: var(--color-primary-medium);
+    outline: none;
+  }
+
+  .form-group textarea {
+    resize: vertical; /* Permite redimensionar verticalmente */
+  }
+
+  .modal-content .card-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1em;
+    margin-top: 15px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Media Queries para responsividad */
+  @media (max-width: 900px) {
+    .pqrs-grid-header, .pqrs-grid {
+      /* Ajusta las columnas para pantallas más pequeñas */
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); /* Ejemplo de ajuste, puedes personalizar */
+    }
+    .pqrs-item {
+      padding: 3px;
+    }
+    .pqrs-grid-header div {
+      font-size: 0.75em;
+    }
+    .pqrs-item .value {
+      font-size: 0.8em;
+    }
+  }
+  @media (max-width: 768px) {
+    .pqrs-grid-header, .pqrs-grid {
+      grid-template-columns: 1fr; /* Apila todo en una columna en móviles */
+      gap: 0;
+    }
+    .pqrs-item {
+      flex-direction: row; /* Etiquetas y valores en la misma línea */
+      justify-content: space-between;
+      padding: 8px 5px;
+      border-bottom: 1px dashed #eee; /* Separador ligero para cada item */
+    }
+    .pqrs-item .label {
+      margin-bottom: 0;
+      flex-shrink: 0;
+      width: 40%; /* Ancho para la etiqueta */
+      text-align: left;
+    }
+    .pqrs-item .value {
+      text-align: right;
+      flex-grow: 1;
+    }
+    .pqrs-item.acciones {
+      flex-direction: row; /* Mantiene los botones en fila */
+      justify-content: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--color-border); /* Separador para acciones */
+      border-bottom: none;
+    }
+    .pqrs-card {
+      padding: 10px; /* Menos padding en móviles */
+    }
+    .pqrs-main-buttons-container {
+      flex-direction: column;
+    }
+    .pqrs-new-case-form .type-selection-buttons {
+      flex-direction: column;
+    }
+    .modal-content {
+      width: 95%;
+      padding: 20px;
+    }
+  }
+
+  </style>
